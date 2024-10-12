@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const QuestionAsking = ({ formId }: { formId: string }) => {
+const QuestionAsking = ({ formId }: { formId?: string }) => { // Make formId optional
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -12,7 +12,7 @@ const QuestionAsking = ({ formId }: { formId: string }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ formId, question }),
+      body: JSON.stringify({ formId, question }), // Include formId if available
     });
     const data = await res.json();
     setResponse(data.response);
@@ -35,10 +35,10 @@ const QuestionAsking = ({ formId }: { formId: string }) => {
 
   return (
     <div className="p-4 bg-white shadow-md rounded mt-4 text-black">
-      <h2 className="text-xl font-bold mb-4">Ask a Question</h2>
+      <h2 className="text-xl font-bold mb-4">Ask AI</h2>
       <input
         type="text"
-        placeholder="Ask your question..."
+        placeholder="Eg. Summarize the form responses"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         className="border p-2 rounded mb-4 w-full"
