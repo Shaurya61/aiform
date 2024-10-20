@@ -36,7 +36,7 @@ const AIResponseFormatter = ({ response }: { response: string }) => {
     console.log('Evidence Content:', content); // Debugging step to see the content structure
   
     // Updated regex to handle various formats more robustly
-    const quoteRegex = /"(.*?)"\s*-?\s*([a-zA-Z0-9 ]+\(\d{4}-\d{2}-\d{2}\))?/g;
+    const quoteRegex = /&quot;(.*?)&quot;\s*-?\s*([a-zA-Z0-9 ]+\(\d{4}-\d{2}-\d{2}\))?/g;
     let match;
     const quoteItems = [];
   
@@ -57,12 +57,13 @@ const AIResponseFormatter = ({ response }: { response: string }) => {
       <div key={index} className="flex items-start space-x-2 mb-2">
         <Quote className="w-4 h-4 text-blue-500 mt-1 flex-shrink-0" />
         <div className="text-gray-600">
-          <p className="font-semibold">"{item.quoteText}"</p>
+          <p className="font-semibold">&quot;{item.quoteText}&quot;</p>
           <span className="text-sm text-gray-500">- {item.author}</span>
         </div>
       </div>
     ));
   };
+
   return (
     <div className="space-y-4">
       {sections.map((section, index) => {

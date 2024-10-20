@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FileText, Share2, Brain } from 'lucide-react';
 import Button from '@/components/ui/button';
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
@@ -39,11 +40,20 @@ export default function LandingPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: 'easeInOut' }}
         >
-          <img
-            src="/AIForm2.svg"
-            alt="AI Survey Analysis Illustration"
-            className="rounded-lg shadow-xl max-w-lg"
-          />
+          <motion.div
+  className="md:w-1/2 flex justify-center mt-8 md:mt-0"
+  initial={{ opacity: 0, x: 50 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.6, delay: 0.3, ease: 'easeInOut' }}
+>
+  <Image
+    src="/AIForm2.svg"
+    alt="AI Survey Analysis Illustration"
+    width={512}  // adjust based on your image size
+    height={512} // adjust based on your image size
+    className="rounded-lg shadow-xl max-w-lg"
+  />
+</motion.div>
         </motion.div>
       </section>
 
@@ -148,8 +158,8 @@ export default function LandingPage() {
             <div className="bg-white p-8 rounded-lg shadow-inner">
               <h4 className="font-semibold mb-4">Sample AI Analysis Output:</h4>
               <p className="text-sm text-gray-700">
-                "Based on 200 responses, 80% are satisfied with product usability. Key areas for improvement include customer
-                support and delivery times."
+              &quot;Based on 200 responses, 80% are satisfied with product usability. Key areas for improvement include customer
+              support and delivery times.&quot;
               </p>
             </div>
           </div>

@@ -22,7 +22,7 @@ const Custom404 = () => {
           transition={{ delay: 0.5, duration: 0.8 }}
           className="mt-4 text-xl text-gray-700"
         >
-          Oops! The page you're looking for doesn't exist.
+           Oops! The page you&apos;re looking for doesn&apos;t exist.
         </motion.p>
 
         <motion.div
