@@ -5,7 +5,6 @@ import clientPromise from '@/lib/mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-// Named export for the POST method
 export async function POST(req: NextRequest) {
   const { name, email, password } = await req.json();
 
@@ -28,6 +27,7 @@ export async function POST(req: NextRequest) {
       name,
       email,
       password: hashedPassword,
+      createdAt: new Date(),
     });
 
     // Create a JWT
@@ -37,8 +37,19 @@ export async function POST(req: NextRequest) {
       { expiresIn: '1h' } // token expires in 1 hour
     );
 
-    return NextResponse.json({ message: 'User created', token }, { status: 201 });
+    // Set token in HttpOnly cookie
+    const response = NextResponse.json({ message: 'User created' }, { status: 201 });
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60, // 1 hour
+    });
+
+    return response;
   } catch (error) {
+    console.error(error); // Log error for debugging
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

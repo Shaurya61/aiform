@@ -1,62 +1,114 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import AIResponseFormatter from './AiResponseFormatter';
 
-const QuestionAsking = ({ formId }: { formId?: string }) => { // Make formId optional
+const QuestionAsking = ({ formUrlId }: { formUrlId: string }) => {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleAskQuestion = async () => {
+    if (!question.trim()) return;
+
     setLoading(true);
-    const res = await fetch(`/api/ask-question`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ formId, question }), // Include formId if available
-    });
-    const data = await res.json();
-    setResponse(data.response);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/ask-question`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ formUrlId, question }),
+      });
+      if (!res.ok) throw new Error('Failed to get response');
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (error) {
+      console.error('Error asking question:', error);
+      setResponse('An error occurred while processing your question.');
+    } finally {
+      setLoading(false);
+    }
   };
+  
+  
 
-  // Function to style the AI response
-  const renderFormattedResponse = (response: string) => {
-    const boldPattern = /\*\*(.*?)\*\*/g; // Matches text surrounded by **
-    const formattedText = response.split(boldPattern).map((part, index) => {
-      if (index % 2 === 1) {
-        // Every second match is bold
-        return <strong key={index}>{part}</strong>;
-      }
-      return part;
-    });
-
-    return formattedText;
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAskQuestion();
+    }
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded mt-4 text-black">
-      <h2 className="text-xl font-bold mb-4">Ask AI</h2>
-      <input
-        type="text"
-        placeholder="Eg. Summarize the form responses"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        className="border p-2 rounded mb-4 w-full"
-      />
-      <button
-        onClick={handleAskQuestion}
-        className="bg-blue-500 text-white p-2 rounded"
-        disabled={loading}
-      >
-        {loading ? 'Asking...' : 'Ask'}
-      </button>
-      {response && (
-        <div className="mt-4 p-4 bg-gray-100 rounded">
-          <strong className="block mb-2">AI Response:</strong>
-          <div className="whitespace-pre-line">{renderFormattedResponse(response)}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl shadow-lg p-6"
+    >
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        Ask AI about this form
+      </h2>
+
+      <div className="space-y-4">
+        <div className="relative flex items-center">
+          <input
+            type="text"
+            placeholder="E.g., Summarize the responses for this form"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="w-full px-4 py-3 pr-24 rounded-lg border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all duration-200 text-gray-800 placeholder-gray-400 bg-white"
+          />
+          <motion.button
+            onClick={handleAskQuestion}
+            disabled={loading || !question.trim()}
+            className={`absolute right-2 px-4 py-1.5 rounded-md font-medium transition-all duration-200 ${loading || !question.trim()
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+              }`}
+            whileHover={!loading && question.trim() ? { scale: 1.02 } : {}}
+            whileTap={!loading && question.trim() ? { scale: 0.98 } : {}}
+          >
+            {loading ? (
+              <span className="flex items-center space-x-2">
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                />
+                <span>...</span>
+              </span>
+            ) : (
+              'Ask AI'
+            )}
+          </motion.button>
         </div>
-      )}
-    </div>
+
+        <AnimatePresence>
+          {response && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 shadow-inner"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm mr-3">
+                  AI
+                </div>
+                <h3 className="font-semibold text-gray-700">Response</h3>
+              </div>
+
+              <div className="prose prose-blue max-w-none">
+                <div className="text-gray-700 leading-relaxed space-y-2">
+                <AIResponseFormatter response={response ?? ''} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 

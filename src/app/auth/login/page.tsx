@@ -4,59 +4,40 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Input from '@/components/ui/input'
 import Button from '@/components/ui/button'
+import { signIn } from 'next-auth/react';
 import LoginBackgroundDecoration from '@/components/ui/loginbackground-decoration'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const router = useRouter();
 
-  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
   };
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-  
-    const { email, password } = formData;
+    const res = await signIn('credentials', {
+      redirect: false,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    setIsLoading(false);
     
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Login failed');
-        }
-
-        // Handle successful login (e.g., store token, redirect, etc.)
-        console.log('Login successful:', data);
-        // Example: Redirect to homepage or dashboard
-        router.push('/form-analysis');
-
-    } catch (error) {
-        console.error('Error:', error);
-        // Optionally set an error state to display to the user
-    } finally {
-        setIsLoading(false);
+    if (res?.error) {
+      console.error('Error:', res.error);
+    } else {
+      router.push('/create-form');
     }
-};
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 p-4">

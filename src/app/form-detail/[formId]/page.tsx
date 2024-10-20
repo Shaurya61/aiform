@@ -1,4 +1,4 @@
-// pages/form-detail/[formId].tsx
+// app/form-detail/[formId].tsx
 "use client";
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -6,7 +6,10 @@ import QuestionAsking from '@/components/QuestionAsking';
 
 const FormDetailPage = () => {
   const router = useRouter();
-  const { formId } = useParams() as { formId: string }; // Type the query correctly
+  const { formUrlId, responseId } = useParams();
+
+  const formUrlIdString = Array.isArray(formUrlId) ? formUrlId[0] : formUrlId;
+  const responseIdString = Array.isArray(responseId) ? responseId[0] : responseId;
 
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -14,10 +17,10 @@ const FormDetailPage = () => {
 
   useEffect(() => {
     const fetchFormDetails = async () => {
-      if (!formId) return;
-
+      if (!formUrlId) return;
+        const res = await fetch(`/api/forms/${formUrlIdString}/${responseIdString}`);
       try {
-        const res = await fetch(`/api/forms/${formId}`);
+        const res = await fetch(`/api/forms/${formUrlId}/${responseId}`);
         if (!res.ok) {
           throw new Error('Failed to fetch form details');
         }
@@ -31,7 +34,7 @@ const FormDetailPage = () => {
     };
 
     fetchFormDetails();
-  }, [formId]);
+  }, [responseId, formUrlId]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -50,9 +53,8 @@ const FormDetailPage = () => {
         <p>Rating: {formData.rating} / 5</p>
         <p>Date Submitted: {new Date(formData.createdAt).toLocaleString()}</p>
       </div>
-      
       {/* Form-specific question asking */}
-      <QuestionAsking formId={formId} />
+      <QuestionAsking formUrlId={formUrlIdString} />
     </div>
   );
 };

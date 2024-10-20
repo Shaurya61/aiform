@@ -1,8 +1,8 @@
 "use client";
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import BackgroundDecoration from '@/components/ui/loginbackground-decoration';
+import { useRouter, useParams } from 'next/navigation';
+import Header from '@/components/Header';
 
 const Form = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +14,10 @@ const Form = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  // Extracting the formUrlId directly from the path using `useRouter`
+  const params = useParams();
+  const formUrlId = params.formUrlId;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -24,7 +28,7 @@ const Form = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, formUrlId: formUrlId }),
       });
 
       if (response.ok) {
@@ -41,12 +45,12 @@ const Form = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 p-4">
-      <BackgroundDecoration />
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-lg"
+        className="max-w-lg w-full mx-auto"
       >
         <motion.div
           className="bg-white shadow-2xl rounded-2xl p-8 space-y-6"
@@ -64,7 +68,7 @@ const Form = () => {
                 placeholder="John Doe"
                 value={formData.customerName}
                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
                 required
               />
             </div>
@@ -76,7 +80,7 @@ const Form = () => {
                 placeholder="Share your thoughts..."
                 value={formData.feedback}
                 onChange={(e) => setFormData({ ...formData, feedback: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg p-3 h-24 resize-none text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+                className="w-full border border-gray-300 rounded-lg p-3 h-24 resize-none text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
                 required
               />
             </div>
@@ -87,25 +91,26 @@ const Form = () => {
                 id="rating"
                 value={formData.rating}
                 onChange={(e) => setFormData({ ...formData, rating: parseInt(e.target.value) })}
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
               >
                 {[1, 2, 3, 4, 5].map((value) => (
                   <option key={value} value={value}>
-                    {`${value} - ${['Very Bad', 'Bad', 'Neutral', 'Good', 'Excellent'][value - 1]}`}
+                    {value} - {value === 1 ? 'Very Bad' : value === 5 ? 'Excellent' : ''}
                   </option>
                 ))}
               </select>
             </div>
 
-            <button
+            <motion.button
               type="submit"
-              className={`w-full bg-blue-600 text-white font-medium py-3 rounded-lg shadow-md transform transition duration-300 ease-in-out ${
-                isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700 hover:scale-105'
+              className={`w-full bg-indigo-600 text-white font-medium py-3 rounded-lg shadow-md transform transition duration-300 ease-in-out ${
+                isSubmitting ? 'cursor-not-allowed opacity-50' : 'hover:bg-indigo-700 hover:scale-105'
               }`}
               disabled={isSubmitting}
+              whileTap={{ scale: 0.98 }}
             >
               {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
-            </button>
+            </motion.button>
           </form>
         </motion.div>
       </motion.div>
