@@ -1,10 +1,10 @@
-import NextAuth, { AuthOptions } from 'next-auth';
+// src/lib/auth.config.ts
+import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import clientPromise from '@/lib/mongodb';
 
-// Define auth options separately and type it properly
-const authConfig: AuthOptions = {
+export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -44,12 +44,3 @@ const authConfig: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-// Create the handler
-const handler = NextAuth(authConfig);
-
-// Export the handler functions
-export { handler as GET, handler as POST };
-
-// If you need to use the auth options elsewhere in your application,
-// create a separate config file (e.g., auth.config.ts) and export it from there
