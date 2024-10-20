@@ -35,15 +35,18 @@ const AIResponseFormatter = ({ response }: { response: string }) => {
   const renderEvidence = (content: string) => {
     console.log('Evidence Content:', content); // Debugging step to see the content structure
   
-    // Updated regex to handle various formats more robustly
-    const quoteRegex = /&quot;(.*?)&quot;\s*-?\s*([a-zA-Z0-9 ]+\(\d{4}-\d{2}-\d{2}\))?/g;
+    // Replace encoded quotes with standard quotes in case they're present in the content
+    const decodedContent = content.replace(/&quot;/g, '"');
+  
+    // Updated regex to handle both encoded and standard quotes
+    const quoteRegex = /"(.*?)"\s*-?\s*([a-zA-Z0-9 ]*(?:\(\d{4}-\d{2}-\d{2}\))?)/g;
     let match;
     const quoteItems = [];
   
     // Use the regex to extract each quote and its associated author if available
-    while ((match = quoteRegex.exec(content)) !== null) {
+    while ((match = quoteRegex.exec(decodedContent)) !== null) {
       const quoteText = match[1];
-      const author = match[2] || 'Unknown Author'; // Fallback to 'Unknown Author' if not present
+      const author = match[2] ? match[2].trim() : 'Unknown Author'; // Fallback to 'Unknown Author' if not present
       quoteItems.push({ quoteText, author });
     }
   
@@ -63,6 +66,7 @@ const AIResponseFormatter = ({ response }: { response: string }) => {
       </div>
     ));
   };
+  
 
   return (
     <div className="space-y-4">
