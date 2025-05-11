@@ -1,32 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { getToken } from 'next-auth/jwt'; // Import getToken from NextAuth
+import { getToken } from 'next-auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch the token using NextAuth's getToken function
+    // Combine token existence and user ID check
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    
-    // Check if token exists
-    if (!token) {
+    if (!token?.sub) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Extract user ID from the token (usually it's in the 'sub' field)
     const userId = token.sub;
-    if (!userId) {
-      return NextResponse.json({ error: 'Invalid token: missing user ID' }, { status: 400 });
-    }
 
-    // Connect to MongoDB
+    // Connect to MongoDB (clientPromise already caches the connection)
     const client = await clientPromise;
     const db = client.db('video_player');
-    const formsCollection = db.collection('forms');
 
-    // Fetch forms created by the logged-in user
-    const forms = await formsCollection.find({ userId }).toArray();
+    // Use projection to limit the fields returned (adjust as needed)
+    const forms = await db
+      .collection('forms')
+      .find(
+        { userId },
+        { projection: { formName: 1, formDescription: 1, formUrlId: 1, createdAt: 1 } }
+      )
+      .toArray();
 
-    // Return the forms in the response
     return NextResponse.json({ forms }, { status: 200 });
   } catch (error) {
     console.error('Error fetching forms:', error);

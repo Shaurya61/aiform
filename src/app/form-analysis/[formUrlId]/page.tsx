@@ -1,202 +1,262 @@
-"use client";
+'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import QuestionAsking from '@/components/QuestionAsking';
-import Layout from '@/components/Layout';
-import Header from '@/components/Header';
+import {
+    ArrowLeftIcon,
+    FileTextIcon,
+    StarIcon,
+    ChartBarIcon,
+    MessageCircleIcon, // Added for feedback icon
+    LayoutDashboardIcon, //Added for overview
+    BarChart4Icon, //Added for rating distribution
+    MessageSquare, //Added for recent feedback
+} from 'lucide-react';
+import { ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 const FormAnalysisPage = () => {
-  const [formData, setFormData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'form' | 'feedback'>('form'); // state for active tab
-  const { formUrlId } = useParams();
+    const [formData, setFormData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'form' | 'feedback'>('form');
+    const { formUrlId } = useParams();
+    const router = useRouter();
 
-  useEffect(() => {
-    const fetchFormDetails = async () => {
-      try {
-        const res = await fetch(`/api/forms/${formUrlId}`);
-        if (!res.ok) throw new Error('Failed to fetch form responses');
-        const data = await res.json();
-        setFormData(data);
-      } catch (error: any) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFormDetails();
-  }, [formUrlId]);
+    useEffect(() => {
+        const fetchFormDetails = async () => {
+            try {
+                const res = await fetch(`/api/forms/${formUrlId}`);
+                if (!res.ok) throw new Error('Failed to fetch form responses');
+                const data = await res.json();
+                setFormData(data);
+            } catch (error: any) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchFormDetails();
+    }, [formUrlId]);
 
-  if (loading) {
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center"
+                >
+                    <ArrowPathIcon className="h-12 w-12 animate-spin text-blue-500 mb-6" />
+                    <p className="text-lg text-gray-700">Loading form data...</p>
+                </motion.div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center"
+                >
+                    <ExclamationCircleIcon className="h-12 w-12 text-red-500 mb-6" />
+                    <p className="text-lg text-red-700">Error: {error}</p>
+                </motion.div>
+            </div>
+        );
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xl text-gray-800"
-        >
-          Loading...
-        </motion.div>
-      </div>
-    );
-  }
+        <div className="min-h-screen bg-gray-100 py-12">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-7xl">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="mb-8"
+                >
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                    >
+                        <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                        Back
+                    </button>
+                </motion.div>
 
-  if (error) {
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                    className="bg-white shadow-xl rounded-2xl overflow-hidden"
+                >
+                    {/* Header */}
+                    <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                        <h2 className="text-2xl font-semibold">{formData.formName}</h2>
+                        <p className="text-sm opacity-80">{formData.formDescription}</p>
+                    </div>
+
+                    {/* Navigation Tabs */}
+                    <nav className="flex bg-gray-50 border-b border-gray-200">
+                        <button
+                            onClick={() => setActiveTab('form')}
+                            className={cn(
+                                "flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors duration-200",
+                                activeTab === 'form'
+                                    ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            )}
+                        >
+                            <FileTextIcon className="h-5 w-5" />
+                            Form Details
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('feedback')}
+                            className={cn(
+                                "flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors duration-200",
+                                activeTab === 'feedback'
+                                    ? 'bg-white text-indigo-600 border-b-2 border-indigo-600'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            )}
+                        >
+                            <MessageCircleIcon className="h-5 w-5" />
+                            Feedback
+                        </button>
+                    </nav>
+
+                    {/* Content Area */}
+                    <div className="p-6">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="min-h-[calc(100vh - 250px)]" // Increased min-height
+                        >
+                            {activeTab === 'form' ? (
+                                <QuestionAsking formUrlId={Array.isArray(formUrlId) ? formUrlId[0] : formUrlId} />
+                            ) : (
+                                <FeedbackDashboard feedback={formData.feedback} />
+                            )}
+                        </motion.div>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+const FeedbackDashboard = ({ feedback }: { feedback: any[] }) => {
+    const totalFeedback = feedback ? feedback.length : 0;
+    const averageRating = feedback?.reduce((sum, item) => sum + item.rating, 0) / totalFeedback || 0;
+    const ratingCounts = feedback?.reduce((acc, item) => {
+        acc[item.rating] = (acc[item.rating] || 0) + 1;
+        return acc;
+    }, {} as { [key: number]: number });
+
+    const recentFeedback = feedback?.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5) || [];
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xl text-red-600"
-        >
-          {error}
-        </motion.div>
-      </div>
+        <div className="space-y-8">
+            {/* Overview Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex items-center gap-4">
+                    <LayoutDashboardIcon className="h-8 w-8 text-blue-500" />
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Total Feedback</p>
+                        <p className="text-2xl font-semibold text-gray-800">{totalFeedback}</p>
+                    </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 flex items-center gap-4">
+                    <StarIcon className="h-8 w-8 text-yellow-500" />
+                    <div>
+                        <p className="text-sm font-medium text-gray-500">Average Rating</p>
+                        <p className="text-2xl font-semibold text-gray-800">{averageRating.toFixed(1)} / 5</p>
+                    </div>
+                </div>
+                {/* Add more overview stats as needed */}
+            </div>
+
+            {/* Rating Distribution */}
+            {ratingCounts && Object.keys(ratingCounts).length > 0 && (
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                        <BarChart4Icon className="h-6 w-6 text-gray-600" />
+                        Rating Distribution
+                    </h3>
+                    <div className="space-y-4">
+                        {[5, 4, 3, 2, 1].map((rating) => (
+                            <div key={rating} className="flex items-center gap-4">
+                                <span className="text-gray-600">{rating} <StarIcon className="h-4 w-4 inline-block text-yellow-400" /></span>
+                                <div className="bg-gray-200 h-4 rounded-full w-full relative overflow-hidden">
+                                    <div
+                                        className="bg-yellow-400 h-full rounded-full absolute left-0 top-0"
+                                        style={{ width: `${(ratingCounts[rating] / totalFeedback) * 100}%` }}
+                                    >
+                                        {totalFeedback > 0 && (
+                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-800">
+                                                {ratingCounts[rating] || 0}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Recent Feedback */}
+            {recentFeedback.length > 0 && (
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                        <MessageSquare className="h-6 w-6 text-gray-600"/>
+                        Recent Feedback
+                    </h3>
+                    <div className="space-y-6">
+                        {recentFeedback.map((feedbackItem: any) => (
+                            <div key={feedbackItem.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <div className="flex items-start mb-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-semibold uppercase">
+                                        {feedbackItem.customerName.charAt(0)}
+                                    </div>
+                                    <div className="ml-4 flex-grow">
+                                        <p className="text-sm font-medium text-gray-700">{feedbackItem.customerName}</p>
+                                        <p className="text-xs text-gray-500">{format(new Date(feedbackItem.createdAt), 'PPPppp')}</p>
+                                    </div>
+                                    <div className="flex items-center">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <StarIcon
+                                                key={star}
+                                                className={cn(
+                                                    "h-5 w-5",
+                                                    star <= feedbackItem.rating ? 'text-yellow-400' : 'text-gray-300'
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-600 leading-relaxed">{feedbackItem.feedback}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* No Feedback Message */}
+            {totalFeedback === 0 && (
+                <div className="bg-white rounded-xl shadow-md p-8 border border-gray-100 text-center text-gray-500">
+                    <MessageCircleIcon className="h-12 w-12 mx-auto mb-4" />
+                    <p className="text-lg font-medium">No feedback received yet.</p>
+                </div>
+            )}
+        </div>
     );
-  }
-
-  return (
-    <Layout>
-      <div className="h-screen w-screen bg-gradient-to-br from-blue-100 to-indigo-100 p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-screen mx-auto"
-        >
-          <div className="flex flex-col gap-6">
-            <motion.div
-              className="bg-white shadow-2xl rounded-2xl p-8 w-full"
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              {/* Clean Tab Navigation */}
-              <div className="flex justify-center mb-6">
-                <TabButton
-                  label="Form"
-                  isActive={activeTab === 'form'}
-                  onClick={() => setActiveTab('form')}
-                />
-                <TabButton
-                  label="Feedback"
-                  isActive={activeTab === 'feedback'}
-                  onClick={() => setActiveTab('feedback')}
-                />
-              </div>
-
-              {/* Tab Content */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                {activeTab === 'form' ? (
-                  <FormView formData={formData} formUrlId={Array.isArray(formUrlId) ? formUrlId[0] : formUrlId} />
-                ) : (
-                  <FeedbackView feedback={formData.feedback} />
-                )}
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.div>
-      </div>
-    </Layout>
-  );
-};
-
-const TabButton = ({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) => {
-  return (
-    <button
-      className={`px-6 py-2 mx-1 rounded-full font-semibold text-lg transition-colors duration-300
-        ${isActive ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  );
-};
-
-const FormView = ({ formData, formUrlId }: { formData: any; formUrlId: string }) => {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-        {formData.formName}
-      </h1>
-      <p className="text-lg text-gray-600 text-center mb-6">
-        {formData.formDescription}
-      </p>
-      <QuestionAsking formUrlId={Array.isArray(formUrlId) ? formUrlId[0] : formUrlId} />
-    </div>
-  );
-};
-
-const FeedbackView = ({ feedback }: { feedback: any[] }) => {
-  return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-fr">
-      {feedback.map((feedbackItem: any, index: number) => (
-        <FeedbackCard key={index} feedback={feedbackItem} index={index} />
-      ))}
-    </div>
-  );
-};
-
-const FeedbackCard = ({ feedback, index }: { feedback: any; index: number }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="h-full"
-    >
-      <motion.div
-        className="bg-white shadow-2xl rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 h-full flex flex-col"
-        whileHover={{ scale: 1.03 }}
-        transition={{ type: "spring", stiffness: 300 }}
-      >
-        {/* Header Section */}
-        <div className="flex items-center mb-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-            {feedback.customerName.toUpperCase().charAt(0)}
-          </div>
-          <div className="ml-3 flex-grow">
-            <h3 className="text-lg font-semibold text-gray-800 truncate">
-              {feedback.customerName}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {new Date(feedback.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-
-        {/* Feedback Content */}
-        <div className="flex-grow mb-4">
-          <p className="text-gray-600">
-            {feedback.feedback}
-          </p>
-        </div>
-
-        {/* Footer Section - Rating */}
-        <div className="flex items-center mt-auto">
-          <div className="flex items-center">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span
-                key={star}
-                className={`text-2xl ${star <= feedback.rating ? 'text-yellow-400' : 'text-gray-300'
-                  }`}
-              >
-                ★
-              </span>
-            ))}
-          </div>
-          <span className="ml-2 text-sm text-gray-600">
-            ({feedback.rating}/5)
-          </span>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
 };
 
 export default FormAnalysisPage;
